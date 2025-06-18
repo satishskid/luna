@@ -22,8 +22,8 @@ A compassionate AI-powered journaling companion built with React, TypeScript, an
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd luna-ai-journaling-companion
+   git clone https://github.com/satishskid/luna.git
+   cd luna
    ```
 
 2. **Install dependencies**
@@ -68,7 +68,6 @@ npm run preview  # Test the production build locally
 
 3. **Deploy from project directory**
    ```bash
-   cd "/Users/spr/Downloads/luna---ai-journaling-companion (2)"
    vercel
    ```
 
@@ -142,7 +141,7 @@ In Vercel dashboard or CLI, set:
 ## 📁 Project Structure
 
 ```
-luna-ai-journaling-companion/
+luna/
 ├── public/                 # Static assets
 │   ├── manifest.json      # PWA manifest
 │   ├── service-worker.js  # Service worker for PWA
