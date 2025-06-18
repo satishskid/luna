@@ -1,5 +1,15 @@
 // global.d.ts
 
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly GEMINI_API_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
 declare global {
   // Interfaces for the Web Speech API
   // Based on MDN and common typings like @types/wicg-speech-api

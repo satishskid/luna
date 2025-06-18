@@ -3,16 +3,17 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { GEMINI_CHAT_MODEL, LUNA_SYSTEM_PROMPT_TEMPLATE } from '../constants';
 import { ChatMessage } from "../types";
 
-// IMPORTANT: API key must be set as an environment variable `process.env.API_KEY`
-// The application code will not handle API key input or configuration.
-// It assumes `process.env.API_KEY` is available in the execution environment.
+// Get API key from environment variables
+const API_KEY = import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+
 let ai: GoogleGenAI | null = null;
 try {
-   if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable not set. Gemini Service will not function.");
+   if (!API_KEY) {
+    console.error("GEMINI_API_KEY environment variable not set. Gemini Service will not function.");
     // Potentially throw an error or handle this state in the UI
+  } else {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
   }
-  ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 } catch (error) {
   console.error("Failed to initialize GoogleGenAI:", error);
   // This error should be surfaced to the user appropriately.
