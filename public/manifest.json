@@ -1,0 +1,22 @@
+{
+  "name": "Luna - AI Journaling Companion",
+  "short_name": "Luna",
+  "description": "A compassionate AI journaling companion for reflection and emotional processing, using voice interaction.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle", "productivity"],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}
