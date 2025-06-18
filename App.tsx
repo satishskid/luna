@@ -150,12 +150,14 @@ const App: React.FC = () => {
     return <SymbolicNameInput onNameSelected={handleNameSelected} />;
   }
   
-  // A simple loading for API key check (conceptual, as process.env is build-time)
-  if (typeof process.env.API_KEY === 'undefined' || process.env.API_KEY === "") {
+  // Check if API key is available
+  // @ts-ignore
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-red-400 p-8">
         <h1 className="text-2xl font-bold mb-4">Configuration Error</h1>
-        <p>The API_KEY is not configured. This application cannot function without it.</p>
+        <p>The GEMINI_API_KEY is not configured. This application cannot function without it.</p>
         <p className="mt-2 text-sm text-slate-400">Please ensure the environment variable is set correctly by the hosting environment.</p>
       </div>
     );
