@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  define: {
+    'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY)
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -20,6 +23,5 @@ export default defineConfig({
   preview: {
     port: 3000,
     host: true
-  },
-  envPrefix: 'GEMINI_'
+  }
 });
