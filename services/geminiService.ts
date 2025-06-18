@@ -3,32 +3,59 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { GEMINI_CHAT_MODEL, LUNA_SYSTEM_PROMPT_TEMPLATE } from '../constants';
 import { ChatMessage } from "../types";
 
-// Get API key from environment variables
-// @ts-ignore
-const API_KEY = process.env.GEMINI_API_KEY;
+// Get API key from environment variables - multiple fallbacks for different environments
+const getApiKey = (): string | null => {
+  // Check various environment variable sources
+  const sources = [
+    // @ts-ignore - Vite env
+    import.meta.env?.VITE_GEMINI_API_KEY,
+    // @ts-ignore - Process env (build time)
+    process.env?.GEMINI_API_KEY,
+    // @ts-ignore - Window env (runtime)
+    typeof window !== 'undefined' && (window as any).ENV?.GEMINI_API_KEY
+  ];
+  
+  for (const source of sources) {
+    if (source && source !== 'undefined' && source.trim() !== '') {
+      console.log('Found API key from source');
+      return source;
+    }
+  }
+  
+  console.error('No API key found in any environment source');
+  return null;
+};
+
+const API_KEY = getApiKey();
 
 let ai: GoogleGenAI | null = null;
 try {
    if (!API_KEY) {
     console.error("GEMINI_API_KEY environment variable not set. Gemini Service will not function.");
-    // Potentially throw an error or handle this state in the UI
+    console.log("Checked sources: import.meta.env, process.env, window.ENV");
   } else {
+    console.log("Initializing GoogleGenAI with API key");
     ai = new GoogleGenAI({ apiKey: API_KEY });
+    console.log("GoogleGenAI initialized successfully");
   }
 } catch (error) {
   console.error("Failed to initialize GoogleGenAI:", error);
-  // This error should be surfaced to the user appropriately.
 }
 
 
 export const initLunaChat = (symbolicName: string): Chat | null => {
+  console.log("initLunaChat called for:", symbolicName);
+  
   if (!ai) {
     console.error("Gemini AI not initialized. Cannot create chat.");
     return null;
   }
+  
   const systemInstruction = LUNA_SYSTEM_PROMPT_TEMPLATE.replace('[SYMBOLIC_NAME_PLACEHOLDER]', symbolicName);
+  console.log("System instruction prepared, length:", systemInstruction.length);
   
   try {
+    console.log("Creating chat with model:", GEMINI_CHAT_MODEL);
     const chat = ai.chats.create({
       model: GEMINI_CHAT_MODEL,
       config: {
@@ -39,6 +66,7 @@ export const initLunaChat = (symbolicName: string): Chat | null => {
       // History could be pre-filled if needed, but for a new session, it's empty.
       history: [], 
     });
+    console.log("Chat created successfully");
     return chat;
   } catch (error) {
     console.error("Error creating Gemini chat:", error);
@@ -51,19 +79,23 @@ export const sendUserMessageToLuna = async (
   userMessageText: string,
   _currentHistory: ChatMessage[] // For context, though Chat object handles history internally
 ): Promise<string | null> => {
+  console.log("sendUserMessageToLuna called with:", userMessageText);
+  
   if (!ai) {
     console.error("Gemini AI not initialized. Cannot send message.");
-    return null;
+    return "I'm sorry, I'm having trouble connecting to my AI service. Please check that the API key is configured correctly.";
   }
 
   try {
+    console.log("Sending message to Gemini API...");
     // The `chat` object automatically maintains history.
-    // We don't need to pass currentHistory to `sendMessage` itself,
-    // but it's good to be aware of what the AI has seen.
     const response: GenerateContentResponse = await chat.sendMessage({ message: userMessageText });
+    console.log("Received response from Gemini API:", response);
     
     // Extract text response
     const lunaResponseText = response.text;
+    console.log("Extracted text response:", lunaResponseText);
+    
     if (lunaResponseText) {
       return lunaResponseText;
     } else {
@@ -72,6 +104,7 @@ export const sendUserMessageToLuna = async (
     }
   } catch (error) {
     console.error("Error sending message to Luna (Gemini API):", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
     // Provide a user-friendly error message
     return "I'm having a bit of trouble connecting at the moment. Please check your connection or try again in a little while.";
   }
