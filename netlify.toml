@@ -3,7 +3,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18.0.0"
+  NODE_VERSION = "20.11.1"  # LTS version
   NPM_FLAGS = "--legacy-peer-deps"
 
 # Environment variables - set these in Netlify UI
