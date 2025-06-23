@@ -1,4 +1,46 @@
+// API and Model Configuration
 export const GEMINI_CHAT_MODEL = 'gemini-2.5-flash-preview-04-17';
+
+// Voice and Speech Configuration
+export const DEFAULT_VOICE_SETTINGS = {
+  rate: 1.0,    // Speech rate (0.1 to 10)
+  pitch: 1.0,  // Speech pitch (0 to 2)
+  volume: 1.0,  // Speech volume (0 to 1)
+  lang: import.meta.env.VITE_DEFAULT_VOICE_LANG || 'en-IN', // Default to Indian English
+};
+
+// Speech Recognition Settings
+export const SPEECH_RECOGNITION_SETTINGS = {
+  continuous: false,  // We'll handle continuous mode manually
+  interimResults: true, // Get interim results as user speaks
+  lang: 'en-IN',       // Default language
+  maxAlternatives: 5,  // Number of alternative transcripts to return
+  timeout: parseInt(import.meta.env.VITE_SPEECH_RECOGNITION_TIMEOUT || '2000'), // ms of silence before stopping
+};
+
+// Voice Selection Preferences
+// These patterns help identify voices by region
+// Higher priority voices will be listed first
+export const VOICE_REGION_PRIORITY = [
+  {
+    name: 'Indian English',
+    codes: ['en-IN'],
+    patterns: [/india|indian|bengali|hindi|tamil|telugu|malayalam|kannada|gujarati|marathi|punjabi/i],
+    priority: 1
+  },
+  {
+    name: 'Middle Eastern English',
+    codes: ['en-AE', 'en-SA', 'en-QA', 'en-KW', 'en-BH', 'en-OM', 'en-YE', 'en-JO', 'en-LB'],
+    patterns: [/arabic|egypt|saudi|uae|qatar|kuwait|bahrain|oman|yemen|jordan|lebanon|middle.?east|middle.?eastern/i],
+    priority: 2
+  },
+  {
+    name: 'General English',
+    codes: ['en-US', 'en-GB', 'en-AU', 'en-CA', 'en-NZ', 'en-ZA', 'en-IE'],
+    patterns: [/english|us.?english|uk.?english|australian|british|american|canadian/i],
+    priority: 3
+  }
+];
 
 export const LUNA_SYSTEM_PROMPT_TEMPLATE = `You are "Luna", a compassionate AI journaling companion and therapeutic listener. Your purpose is to provide a safe, non-judgmental space for users to reflect on their day, process emotions, and find inner peace through guided journaling conversations.
 
@@ -90,8 +132,4 @@ export const SYMBOLIC_NAMES_LIST: { id: string, name: string }[] = [
   { id: 'ambar', name: 'Ambar' },
 ];
 
-export const DEFAULT_VOICE_SETTINGS = {
-  rate: 1, // 0.1 to 10
-  pitch: 1, // 0 to 2
-  volume: 1, // 0 to 1
-};
+// Voice settings are now defined at the top of the file

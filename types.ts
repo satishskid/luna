@@ -33,4 +33,6 @@ export interface VoiceOption {
   name: string;
   lang: string;
   voiceURI: string;
+  region?: string;
+  isDefault?: boolean;
 }

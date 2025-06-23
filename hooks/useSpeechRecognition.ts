@@ -18,8 +18,32 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const silenceTimerRef = useRef<number | null>(null);
 
   const hasRecognitionSupport = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  // List of language codes that better support Indian and Middle Eastern accents
+  const getLanguageCode = () => {
+    // Try to get user's preferred language from browser
+    const userLang = navigator.language || 'en-US';
+    
+    // List of language codes that work well with Indian and Middle Eastern English accents
+    const supportedAccentCodes = [
+      'en-IN',  // Indian English
+      'en-AE',  // UAE English
+      'en-SA',  // Saudi Arabia English
+      'en-GB',  // British English (often works better than US for non-native speakers)
+      'en-US'   // Default fallback
+    ];
+    
+    // Check if user's language is in our supported list
+    if (supportedAccentCodes.includes(userLang)) {
+      return userLang;
+    }
+    
+    // Default to Indian English as it often handles various accents well
+    return 'en-IN';
+  };
 
   useEffect(() => {
     if (!hasRecognitionSupport) {
@@ -29,45 +53,84 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
 
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
-        setError("Speech recognition API not found.");
-        return;
+      setError("Speech recognition API not found.");
+      return;
     }
+    
     recognitionRef.current = new SpeechRecognitionAPI();
     const recognition = recognitionRef.current;
 
-    recognition.continuous = true; // Keep listening even after a pause
+    // Configure recognition settings
+    recognition.continuous = false; // We'll handle continuous mode ourselves
     recognition.interimResults = true; // Get results as they come
-    recognition.lang = 'en-US'; // Set language
+    recognition.lang = getLanguageCode(); // Set language based on user's preferences
+    recognition.maxAlternatives = 5; // Get more alternatives for better accuracy
+
+    // Clear any existing silence timer
+    const clearSilenceTimer = () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    };
+
+    // Set a timer to stop listening after a period of silence
+    const startSilenceTimer = () => {
+      clearSilenceTimer();
+      silenceTimerRef.current = window.setTimeout(() => {
+        if (isListening) {
+          stopListening();
+        }
+      }, 2000); // 2 seconds of silence
+    };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      clearSilenceTimer();
+      
       let interimTranscript = '';
       let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+      let hasFinalResult = false;
+      
+      // Process all results
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0].transcript;
+        
+        if (result.isFinal) {
+          finalTranscript += text + ' ';
+          hasFinalResult = true;
         } else {
-          interimTranscript += event.results[i][0].transcript;
+          interimTranscript += text;
         }
       }
-      setTranscript(finalTranscript + interimTranscript);
-      if (onResultCallback && finalTranscript) {
-        // Only call callback with final result to avoid multiple triggers on interim
+      
+      // Update the transcript with both final and interim results
+      const newTranscript = (finalTranscript || '') + (interimTranscript || '');
+      setTranscript(newTranscript);
+      
+      // If we have a final result, update the transcript and start the silence timer
+      if (hasFinalResult) {
+        startSilenceTimer();
       }
     };
     
+    recognition.onspeechend = () => {
+      // Speech has stopped, but we'll wait for onend to handle the final result
+      startSilenceTimer();
+    };
+    
     recognition.onend = () => {
-      // This onend can be triggered when stopListening is called, or naturally.
-      // If it was listening and onend is called, it means it stopped.
+      clearSilenceTimer();
+      
+      // Only process the final transcript if we were actually listening
       if (isListening) {
-         // If it was supposed to be continuous and stopped, it might be an issue or a natural end.
-         // For continuous=true, it might stop after a long silence.
-         // We can choose to restart it here if we want truly continuous listening without manual restart.
-         // However, for this app, user controls start/stop explicitly.
+        setIsListening(false);
+        
+        // Only trigger callback if we have a non-empty transcript
+        if (transcript.trim() !== '') {
+          onResultCallback?.(transcript.trim());
+        }
       }
-       setIsListening(false); 
-       if (onResultCallback && transcript.trim() !== "") {
-         onResultCallback(transcript.trim()); // Send final transcript when listening stops
-       }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -93,29 +156,61 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
   }, [hasRecognitionSupport, onResultCallback]); // transcript removed from deps to avoid re-triggering callback
 
   const startListening = useCallback(() => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        setTranscript('');
-        setError(null);
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (e: any) {
-        console.error("Error starting speech recognition:", e);
-        setError(`Could not start voice input: ${e.message || "Please try again."}`);
-        setIsListening(false);
-      }
+    if (!recognitionRef.current) return;
+    
+    try {
+      // Reset state
+      setTranscript('');
+      setError(null);
+      
+      // Start recognition
+      recognitionRef.current.start();
+      setIsListening(true);
+      
+      // Set a timeout to automatically stop if no speech is detected
+      setTimeout(() => {
+        if (isListening && transcript === '') {
+          stopListening();
+        }
+      }, 10000); // 10 seconds timeout if no speech detected
+      
+    } catch (e: any) {
+      console.error("Error starting speech recognition:", e);
+      setError(`Could not start voice input: ${e.message || "Please try again."}`);
+      setIsListening(false);
     }
-  }, [isListening]);
+  }, [isListening, transcript]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
+    if (!recognitionRef.current || !isListening) return;
+    
+    try {
       recognitionRef.current.stop();
-      // onend will set isListening to false and trigger onResultCallback
+      // onend will handle setting isListening to false and calling onResultCallback
+    } catch (e) {
+      console.error("Error stopping speech recognition:", e);
+      setIsListening(false);
     }
   }, [isListening]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
+  }, []);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error("Error during cleanup:", e);
+        }
+      }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+    };
   }, []);
 
   return { isListening, transcript, error, startListening, stopListening, hasRecognitionSupport, resetTranscript };
