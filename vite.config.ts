@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [],
+  plugins: [react()],
+  css: {
+    postcss: './postcss.config.js',
+  },
   define: {
     'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY),
     'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY)
@@ -17,6 +21,9 @@ export default defineConfig({
         }
       }
     }
+  },
+  optimizeDeps: {
+    include: ['@google/generative-ai', 'react', 'react-dom']
   },
   server: {
     port: 3000,

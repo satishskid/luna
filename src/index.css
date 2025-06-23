@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .chat-container {
+    @apply flex flex-col p-4 md:p-6 space-y-4 overflow-y-auto;
+  }
+  
+  .message-bubble {
+    @apply flex flex-col w-full max-w-lg mb-4;
+  }
+  
+  .message-bubble.user {
+    @apply items-end;
+  }
+  
+  .message-bubble.assistant {
+    @apply items-start;
+  }
+  
+  .message-content {
+    @apply px-4 py-3 shadow-md text-sm leading-relaxed;
+  }
+  
+  .message-content.user {
+    @apply bg-sky-600 text-white rounded-l-xl rounded-tr-xl;
+  }
+  
+  .message-content.assistant {
+    @apply bg-slate-700 text-slate-200 rounded-r-xl rounded-tl-xl;
+  }
+  
+  .message-timestamp {
+    @apply text-xs text-slate-500 mt-1 px-11;
+  }
+  
+  .typing-indicator {
+    @apply flex items-start space-x-2 self-start animate-pulse mb-4;
+  }
+  
+  .typing-content {
+    @apply px-4 py-3 bg-slate-700 text-slate-400 rounded-r-xl rounded-tl-xl shadow-md;
+  }
+}

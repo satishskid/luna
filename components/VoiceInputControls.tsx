@@ -51,11 +51,14 @@ const VoiceInputControls: React.FC<VoiceInputControlsProps> = ({
 
   const handleMicClick = () => {
     if (isListening) {
+      // When stopping manually, process immediately
       setIsProcessing(true);
       stopListening();
       // Reset processing state after a short delay
       setTimeout(() => setIsProcessing(false), 1000);
     } else {
+      // When starting, clear any previous state
+      setLastTranscript('');
       startListening();
     }
   };
@@ -117,17 +120,31 @@ const VoiceInputControls: React.FC<VoiceInputControlsProps> = ({
             aria-label={text}
           >
             <Icon className={`w-6 h-6 ${pulse ? 'animate-pulse' : ''}`} />
-            <span>
-              {isProcessing ? 'Processing...' : 
-               isListening ? 'Listening...' : 
-               isDisabled && (appPhase === AppPhase.LUNA_SPEAKING || appPhase === AppPhase.LUNA_THINKING) ? 
-               'Luna is active' : 'Speak'}
+            <span className="flex items-center">
+              {isProcessing ? (
+                <>
+                  <span className="inline-block w-2 h-2 mr-2 bg-amber-400 rounded-full animate-pulse"></span>
+                  Processing...
+                </>
+              ) : isListening ? (
+                <>
+                  <span className="inline-block w-2 h-2 mr-2 bg-red-500 rounded-full animate-pulse"></span>
+                  Tap to Stop
+                </>
+              ) : isDisabled && (appPhase === AppPhase.LUNA_SPEAKING || appPhase === AppPhase.LUNA_THINKING) ? (
+                'Luna is active'
+              ) : (
+                'Tap to Speak'
+              )}
             </span>
           </button>
           
           {/* Visual indicator for listening state */}
           {isListening && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+          )}
+          {isListening && (
+            <div className="absolute -inset-1 rounded-full bg-red-500/10 animate-pulse"></div>
           )}
         </div>
         

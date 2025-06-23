@@ -8,7 +8,7 @@ import VoiceInputControls from './components/VoiceInputControls';
 import SettingsDrawer from './components/SettingsDrawer';
 import { initLunaChat, sendUserMessageToLuna } from './services/geminiService';
 import useSpeechRecognition from './hooks/useSpeechRecognition';
-import useSpeechSynthesis from './hooks/useSpeechSynthesis';
+import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { SettingsIcon, VolumeUpIcon, VolumeOffIcon } from './components/icons';
 
 const App: React.FC = () => {

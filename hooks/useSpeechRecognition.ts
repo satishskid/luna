@@ -77,11 +77,13 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
     // Set a timer to stop listening after a period of silence
     const startSilenceTimer = () => {
       clearSilenceTimer();
+      // Increase silence timeout to 2.5 seconds for better natural pauses
       silenceTimerRef.current = window.setTimeout(() => {
         if (isListening) {
+          console.log('Silence detected, stopping recognition');
           stopListening();
         }
-      }, 2000); // 2 seconds of silence
+      }, 2500);
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -90,11 +92,16 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
       let interimTranscript = '';
       let finalTranscript = '';
       let hasFinalResult = false;
+      let confidence = 0;
+      let resultCount = 0;
       
       // Process all results
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
-        const text = result[0].transcript;
+        const alternative = result[0];
+        const text = alternative.transcript;
+        confidence += alternative.confidence || 0;
+        resultCount++;
         
         if (result.isFinal) {
           finalTranscript += text + ' ';
@@ -104,13 +111,26 @@ const useSpeechRecognition = (onResultCallback?: (result: string) => void): Spee
         }
       }
       
+      // Calculate average confidence
+      const avgConfidence = resultCount > 0 ? confidence / resultCount : 0;
+      
       // Update the transcript with both final and interim results
       const newTranscript = (finalTranscript || '') + (interimTranscript || '');
       setTranscript(newTranscript);
       
-      // If we have a final result, update the transcript and start the silence timer
-      if (hasFinalResult) {
+      // If we have a final result with good confidence, or if we've been listening for a while
+      // with some speech detected, we can be more confident to stop
+      if (hasFinalResult || (newTranscript.length > 5 && avgConfidence > 0.7)) {
         startSilenceTimer();
+      } else if (newTranscript) {
+        // If we have some text but not final, use a slightly longer timeout
+        clearSilenceTimer();
+        silenceTimerRef.current = window.setTimeout(() => {
+          if (isListening) {
+            console.log('No final result but text detected, stopping recognition');
+            stopListening();
+          }
+        }, 3000);
       }
     };
     
