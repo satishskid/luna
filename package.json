@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run type-check && vite build",
     "preview": "vite preview",
     "lint": "echo 'No linting configured yet'",
     "type-check": "tsc --noEmit",

@@ -3,22 +3,28 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { GEMINI_CHAT_MODEL, LUNA_SYSTEM_PROMPT_TEMPLATE } from '../constants';
 import { ChatMessage } from "../types";
 
-// Get API key from environment variables - multiple fallbacks for different environments
+// Get API key from environment variables
 const getApiKey = (): string | null => {
-  // Check various environment variable sources
-  const sources = [
-    // @ts-ignore - Vite env
-    import.meta.env?.VITE_GEMINI_API_KEY,
-    // @ts-ignore - Process env (build time)
-    process.env?.GEMINI_API_KEY,
-    // @ts-ignore - Window env (runtime)
-    typeof window !== 'undefined' && (window as any).ENV?.GEMINI_API_KEY
-  ];
+  // Check Vite environment variables first (VITE_ prefix is required for Vite)
+  const viteKey = import.meta.env?.VITE_GEMINI_API_KEY;
+  if (viteKey && viteKey !== 'undefined' && viteKey.trim() !== '') {
+    console.log('Using VITE_GEMINI_API_KEY from Vite environment');
+    return viteKey.trim();
+  }
   
-  for (const source of sources) {
-    if (source && source !== 'undefined' && source.trim() !== '') {
-      console.log('Found API key from source');
-      return source;
+  // Fallback to process.env for build time
+  const processKey = process.env?.GEMINI_API_KEY;
+  if (processKey && processKey !== 'undefined' && processKey.trim() !== '') {
+    console.log('Using GEMINI_API_KEY from process environment');
+    return processKey.trim();
+  }
+  
+  // Check for window.ENV in browser
+  if (typeof window !== 'undefined') {
+    const windowKey = (window as any).ENV?.GEMINI_API_KEY;
+    if (windowKey && windowKey !== 'undefined' && windowKey.trim() !== '') {
+      console.log('Using GEMINI_API_KEY from window.ENV');
+      return windowKey.trim();
     }
   }
   
