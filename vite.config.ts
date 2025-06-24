@@ -5,12 +5,7 @@ import path from 'path';
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   css: {
-    postcss: {
-      plugins: [
-        require('tailwindcss'),
-        require('autoprefixer'),
-      ],
-    },
+    postcss: './postcss.config.cjs',
   },
   define: {
     'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY),

@@ -1,23 +1,40 @@
 [build]
-  command = "npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18.20.2"  # LTS version
   NPM_FLAGS = "--legacy-peer-deps"
+  NODE_ENV = "production"
+  CI = "false"
 
 [dev]
   command = "npm run dev"
   port = 3000
   publish = "dist"
+  target = "es2020"
 
 [context.production]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = "dist"
   
 [context.deploy-preview]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = "dist"
+
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
 
 # Environment variables - set these in Netlify UI
 # [build.environment]
