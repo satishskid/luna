@@ -1,11 +1,12 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm install --legacy-peer-deps && npm install -g typescript && npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18.20.2"  # LTS version
   NPM_FLAGS = "--legacy-peer-deps"
+  NPM_CONFIG_PRODUCTION = "false"
   NODE_ENV = "production"
   CI = "false"
 
@@ -16,11 +17,11 @@
   target = "es2020"
 
 [context.production]
-  command = "npm ci --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm install -g typescript && npm run build"
   publish = "dist"
   
 [context.deploy-preview]
-  command = "npm ci --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm install -g typescript && npm run build"
   publish = "dist"
 
 [build.processing]

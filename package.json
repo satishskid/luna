@@ -5,30 +5,31 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run type-check && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "echo 'No linting configured yet'",
     "type-check": "tsc --noEmit",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build",
+    "prebuild": "npm run type-check"
   },
   "dependencies": {
     "@google/genai": "^1.4.0",
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^3.4.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss7-compat": "^2.2.17",
     "@types/node": "^22.15.32",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
-    "@vitejs/plugin-react": "^4.6.0",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
     "postcss-import": "^16.1.1",
     "postcss-nesting": "^13.0.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^3.4.1",
     "typescript": "~5.7.2",
     "vite": "^5.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss7-compat": "^2.2.17",
+    "@vitejs/plugin-react": "^4.6.0"
   },
   "engines": {
     "node": ">=20.11.1"
